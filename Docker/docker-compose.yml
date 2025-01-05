@@ -1,0 +1,120 @@
+services:
+  db:
+    build:
+      context: ../Database  # Build from the current directory where the Dockerfile is located
+      dockerfile: Dockerfile  # Specify the Dockerfile for Postgres
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}  # These will be loaded from your .env file or set explicitly
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persistence for PostgreSQL data
+    ports:
+      - "5432:5432"  # Expose PostgreSQL on port 5432
+    networks:
+      - backend_network
+    env_file:
+      - .env 
+
+  frontend:
+    build:
+      context: ../frontend
+    container_name: frontend
+    ports:
+      - "8000:8000"  # Update if the app serves on a different port
+    environment:
+      - NODE_ENV=development
+    networks:
+      - frontend_network
+    volumes:
+      - ./frontend:/var/www/html/app
+    tty: true
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+    networks:
+      - backend_network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  # python:
+  #   build:
+  #     context: ../backend python
+  #   container_name: python_backend
+  #   ports:
+  #     - "5000:5000"
+  #   depends_on:
+  #     rabbitmq:
+  #       condition: service_healthy
+  #   networks:
+  #     - backend_network
+
+  ai_sender_service:
+    build:
+      context: ../backend
+      dockerfile: ./AIModelSenderSerice/Dockerfile
+    container_name: ai_sender_service
+    networks:
+      - backend_network
+      - frontend_network
+    environment:
+      - SERVICE_PORT=8080
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    ports:
+    - "8080:8080"
+
+  ai_receiver_service:
+    build:
+      context: ../backend
+      dockerfile: ./AIModelReceiverService/Dockerfile
+    container_name: ai_reciever_service
+    networks:
+      - backend_network
+      - frontend_network
+    environment:
+      - SERVICE_PORT=8081
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    ports:
+    - "8081:8081"
+
+  main_api:
+    build:
+      context: ../backend
+      dockerfile: ./MainAPI/Dockerfile
+    container_name: main_api
+    networks:
+      - backend_network
+      - frontend_network
+    environment:
+      - SERVICE_PORT=8082
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    ports:
+    - "8082:8082"
+
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  backend_network:
+    driver: bridge
+  frontend_network:
+    driver: bridge
