@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using SharedModels.Requests;
 using SharedModels.Helpers;
 using System.Security.Claims;
-using DatabaseService;
-using SharedModels.Models;
+using GenericServices;
+using SharedModels.Dtos;
 
 namespace AuthService.Controllers
 {
@@ -13,42 +13,36 @@ namespace AuthService.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IDatabaseService _databaseService;
-        private readonly IConfiguration _configuration;
+        private readonly ICrudServicesAsync _databaseService;
 
-        public AuthController(IDatabaseService databaseService, IConfiguration configuration)
+        public AuthController(ICrudServicesAsync databaseService)
         {
             _databaseService = databaseService;
-            _configuration = configuration;
         }
 
-        // Register a new user
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest model)
+        public async Task<IActionResult> Register([FromBody] UserCreateDto model)
         {
             if (string.IsNullOrEmpty(model.Username) || string.IsNullOrEmpty(model.Password))
             {
                 return BadRequest("Username and password are required.");
             }
 
-            var existingUser = await _databaseService.FindUserByUsernameAsync(model.Username);
+            var existingUser = await _databaseService.ReadSingleAsync<UserReadSimpleDto>(model.Username);
             if (existingUser != null)
             {
                 return Conflict("User already exists.");
             }
 
             var hashedPassword = PasswordHelper.HashPassword(model.Password);
-            var newUser = new User
-            {
-                Username = model.Username,
-                Password = hashedPassword
-            };
+            var userId = new Guid();
 
-            await _databaseService.CreateUserAsync(newUser);
+            model.UserId = userId;
+
+            await _databaseService.CreateAndSaveAsync(model);
             return Ok(new { message = "User registered successfully." });
         }
 
-        // Login and generate JWT token
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest model)
         {
@@ -57,35 +51,16 @@ namespace AuthService.Controllers
                 return BadRequest("Username and password are required.");
             }
 
-            var user = await _databaseService.FindUserByUsernameAsync(model.Username);
+            var user = await _databaseService.ReadSingleAsync<UserReadSimpleDto>(model.Username);
             if (user == null || !PasswordHelper.ValidatePassword(user.Password, model.Password))
             {
                 return Unauthorized("Invalid username or password.");
             }
 
-            var token = GenerateJwtToken(user.Username);
+            var token = GenerateJwtToken(user.Username, user.UserId.ToString());
             return Ok(new { access_token = token });
         }
 
-        // Retrieve user profile information
-        [HttpGet("me")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<IActionResult> Profile()
-        {
-            var username = User.Identity?.Name;
-            if (string.IsNullOrEmpty(username))
-            {
-                return Unauthorized("Token is invalid.");
-            }
-
-            var user = await _databaseService.FindUserByUsernameAsync(username);
-            if (user == null)
-            {
-                return NotFound("User not found.");
-            }
-
-            return Ok(new { username = user.Username });
-        }
 
         // Change user password
         [HttpPost("change-password")]
@@ -98,7 +73,7 @@ namespace AuthService.Controllers
                 return Unauthorized("Token is invalid.");
             }
 
-            var user = await _databaseService.FindUserByUsernameAsync(username);
+            var user = await _databaseService.ReadSingleAsync<UserReadSimpleDto>(username);
             if (user == null)
             {
                 return NotFound("User not found.");
@@ -108,14 +83,14 @@ namespace AuthService.Controllers
             {
                 return Unauthorized("Current password is incorrect.");
             }
-
             var hashedNewPassword = PasswordHelper.HashPassword(model.NewPassword);
-            await _databaseService.UpdateUserPasswordAsync(username, hashedNewPassword);
+            user.Password = hashedNewPassword;
+            await _databaseService.UpdateAndSaveAsync(user);
 
             return Ok(new { message = "Password updated successfully." });
         }
 
-        private string GenerateJwtToken(string username)
+        private string GenerateJwtToken(string username, string userId)
         {
             // Ensure the secret key is loaded properly from environment variables or configuration.
             var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY");
@@ -140,9 +115,10 @@ namespace AuthService.Controllers
             var token = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(
                 issuer: issuer,
                 audience: audience,
-                claims: new List<System.Security.Claims.Claim>
+                claims: new List<Claim>
                 {
-                    new System.Security.Claims.Claim(ClaimTypes.Name, username)
+                    new Claim(ClaimTypes.Name, username),
+                    new Claim(ClaimTypes.NameIdentifier, userId )
                 },
                 expires: DateTime.Now.AddHours(1), // Token expires in 1 hour
                 signingCredentials: credentials
