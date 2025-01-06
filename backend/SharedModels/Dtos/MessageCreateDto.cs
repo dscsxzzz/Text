@@ -17,5 +17,7 @@ public class MessageCreateDto : ILinkToEntity<Message>
     [JsonIgnore]
     public Guid ChatId { get; set; }
 
+    public string Type { get; set; } = null!;
+
     public string MessageText { get; set; } = null!;
 }

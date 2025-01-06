@@ -13,5 +13,7 @@ public class Message
 
     public DateTime? CreatedAt { get; set; }
 
+    public string Type { get; set; } = null!;
+
     public virtual Chat Chat { get; set; } = null!;
 }

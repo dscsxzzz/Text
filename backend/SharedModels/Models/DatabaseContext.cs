@@ -61,6 +61,7 @@ public partial class DatabaseContext : DbContext
             entity.Property(e => e.MessageId).ValueGeneratedNever();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.MessageText).HasColumnName("MessageText");
+            entity.Property(e => e.Type).HasColumnName("Type");
 
             entity.HasOne(d => d.Chat).WithMany(p => p.Messages)
                 .HasForeignKey(d => d.ChatId)

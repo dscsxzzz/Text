@@ -13,5 +13,7 @@ public class MessageReadDto : ILinkToEntity<Message>
 {
     public string MessageText { get; set; } = null!;
 
+    public string Type { get; set; } = null!;
+
     public DateTime? CreatedAt { get; set; }
 }

@@ -1,23 +1,62 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "@/stores/authStore";
+import HomePage from "@/components/HomePage.vue";
+import LoginPage from "@/components/LoginPage.vue";
+import ChatWindow from "@/components/ChatWindow.vue";
+import MainLayout from "@/components/MainLayout.vue";
+
+const routes = [
+  {
+    path: "/",
+    name: "Home",
+    component: HomePage,
+  },
+  {
+    path: "/login",
+    name: "Login",
+    component: LoginPage,
+  },
+  {
+    path: "/chats/:chatGuid?",
+    name: "ChatWindow",
+    component: MainLayout,
+    beforeEnter: async (to, from, next) => {
+      const authStore = useAuthStore();
+      const chatGuid = to.params.chatGuid;
+  
+      if (!authStore.isAuthenticated) {
+        next({ name: "Login" });
+        return;
+      }
+  
+      if (chatGuid) {
+        // Check if the provided chatGuid exists in user's chats
+        if (!authStore.chats.some((chat) => chat === chatGuid)) {
+          alert("You do not have access to this chat.");
+          next({ name: "Home" });
+          return;
+        }
+      } else {
+        // If no chatGuid is provided, create a new one and navigate to it
+        try {
+          const newChat = await authStore.createNewChat(); // Assuming this method exists in your store to create a new chat
+          next({ name: "ChatWindow", params: { chatGuid: newChat } });
+          return;
+        } catch (error) {
+          alert("Failed to create a new chat.");
+          next({ name: "Home" });
+          return;
+        }
+      }
+  
+      next();
+    },
+  },
+];
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: HomeView,
-    },
-    {
-      path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AboutView.vue'),
-    },
-  ],
-})
+  history: createWebHistory(),
+  routes,
+});
 
-export default router
+export default router;

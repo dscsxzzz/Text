@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS "Message" (
     "MessageId" UUID PRIMARY KEY,    -- GUID field for MessageId
     "ChatId" UUID NOT NULL,          -- ChatId (foreign key from Chats)
     "MessageText" TEXT NOT NULL,         -- Message content
-    "CreatedAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP, -- Message creation timestamp
+    "CreatedAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    "Type" VARCHAR(4) NOT NULL,
     FOREIGN KEY ("ChatId") REFERENCES "Chat"("ChatId")   -- Foreign key to Chats table
 );
 
