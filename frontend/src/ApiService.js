@@ -1,16 +1,14 @@
 import axios from "axios";
 
 class ApiService {
-  constructor(baseURL) {
-    this.api = axios.create({
-      baseURL,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-  }
+  static api = axios.create({
+    baseURL: "http://localhost:8083",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 
-  setAuthToken(token) {
+  static setAuthToken(token) {
     if (token) {
       this.api.defaults.headers.Authorization = `Bearer ${token}`;
     } else {
@@ -19,7 +17,7 @@ class ApiService {
   }
 
   // Auth Endpoints
-  async register(user) {
+  static async register(user) {
     try {
       const response = await this.api.post("/api/auth/register", user);
       return response.data;
@@ -28,7 +26,7 @@ class ApiService {
     }
   }
 
-  async login(credentials) {
+  static async login(credentials) {
     try {
       const response = await this.api.post("/api/auth/login", credentials);
       return response.data;
@@ -37,7 +35,7 @@ class ApiService {
     }
   }
 
-  async changePassword(changePasswordRequest) {
+  static async changePassword(changePasswordRequest) {
     try {
       const response = await this.api.post("/api/auth/change-password", changePasswordRequest);
       return response.data;
@@ -47,7 +45,7 @@ class ApiService {
   }
 
   // User Endpoints
-  async getUserProfile(userId) {
+  static async getUserProfile(userId) {
     try {
       const response = await this.api.get(`/api/users/${userId}/data`);
       return response.data;
@@ -57,7 +55,7 @@ class ApiService {
   }
 
   // Chat Endpoints
-  async getUserChats(userId) {
+  static async getUserChats(userId) {
     try {
       const response = await this.api.get(`/api/users/${userId}/chats`);
       return response.data;
@@ -66,7 +64,7 @@ class ApiService {
     }
   }
 
-  async getUserChat(userId, chatId) {
+  static async getUserChat(userId, chatId) {
     try {
       const response = await this.api.get(`/api/users/${userId}/chats/${chatId}`);
       return response.data;
@@ -75,7 +73,7 @@ class ApiService {
     }
   }
 
-  async createChat(userId, chatCreateDto) {
+  static async createChat(userId, chatCreateDto) {
     try {
       const response = await this.api.post(`/api/users/${userId}/chats`, chatCreateDto);
       return response.data;
@@ -84,7 +82,7 @@ class ApiService {
     }
   }
 
-  async updateChat(userId, chatUpdateDto) {
+  static async updateChat(userId, chatUpdateDto) {
     try {
       const response = await this.api.put(`/api/users/${userId}/chats`, chatUpdateDto);
       return response.data;
@@ -93,7 +91,7 @@ class ApiService {
     }
   }
 
-  async deleteChat(userId, chatId) {
+  static async deleteChat(userId, chatId) {
     try {
       const response = await this.api.delete(`/api/users/${userId}/chats/${chatId}`);
       return response.data;
@@ -103,7 +101,7 @@ class ApiService {
   }
 
   // Message Endpoints
-  async postMessage(userId, chatId, messageCreateDto) {
+  static async postMessage(userId, chatId, messageCreateDto) {
     try {
       const response = await this.api.post(`/api/users/${userId}/chats/${chatId}`, messageCreateDto);
       return response.data;
