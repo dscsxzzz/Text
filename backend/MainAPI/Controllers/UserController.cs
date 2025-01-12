@@ -1,10 +1,10 @@
-﻿using System.Data.Entity;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using GenericServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SharedModels.Dtos;
 using SharedModels.Models;
 
@@ -75,6 +75,7 @@ public class UserController : Controller
         var chats = await _databaseService.ReadManyNoTracked<ChatReadSimpleDto>()
             .Where(x => x.UserId == userId)
             .ToListAsync();
+
         if (chats == null)
         {
             return NotFound("Chats not found.");
@@ -137,7 +138,7 @@ public class UserController : Controller
             return NotFound("User not found.");
         }
 
-        var chatId = new Guid();
+        var chatId = Guid.NewGuid();
         chatCreateDto.ChatId = chatId;
 
         await _databaseService.CreateAndSaveAsync(chatCreateDto);
@@ -230,7 +231,7 @@ public class UserController : Controller
         if (chat == null)
             return NotFound("Chat not found");
 
-        var messageId = new Guid();
+        var messageId = Guid.NewGuid();
         messageCreateDto.MessageId = messageId;
 
         await _databaseService.CreateAndSaveAsync(messageCreateDto);

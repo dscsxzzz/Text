@@ -4,6 +4,7 @@ import HomePage from "@/components/HomePage.vue";
 import LoginPage from "@/components/LoginPage.vue";
 import ChatWindow from "@/components/ChatWindow.vue";
 import MainLayout from "@/components/MainLayout.vue";
+import RegisterPage from "@/components/RegisterPage.vue";
 
 const routes = [
   {
@@ -15,6 +16,11 @@ const routes = [
     path: "/login",
     name: "Login",
     component: LoginPage,
+  },
+  {
+    path: "/register",
+    name: "Register",
+    component: RegisterPage,
   },
   {
     path: "/chats/:chatGuid?",

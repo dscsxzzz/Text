@@ -2,7 +2,7 @@ import axios from "axios";
 
 class ApiService {
   static api = axios.create({
-    baseURL: "http://localhost:8083",
+    baseURL: "http://localhost:8082",
     headers: {
       "Content-Type": "application/json",
     },
@@ -29,9 +29,9 @@ class ApiService {
   static async login(credentials) {
     try {
       const response = await this.api.post("/api/auth/login", credentials);
-      return response.data;
+      return await response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw await error.response?.data || error.message;
     }
   }
 

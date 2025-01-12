@@ -77,7 +77,6 @@ public partial class DatabaseContext : DbContext
 
             entity.HasIndex(e => e.Username, "User_Username_key").IsUnique();
 
-            entity.Property(e => e.UserId).ValueGeneratedNever();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.Password).HasMaxLength(255);
             entity.Property(e => e.Username).HasMaxLength(255);

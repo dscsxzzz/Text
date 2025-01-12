@@ -5,6 +5,9 @@ ENV POSTGRES_USER=${POSTGRES_USER}
 ENV POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 ENV POSTGRES_DB=${POSTGRES_DB}
 
+
+COPY postgresql.conf /etc/postgresql/postgresql.conf
+COPY pg_hba.conf /etc/postgresql/pg_hba.conf
 # Optional: Add a custom initialization SQL script
 # If you have a custom database initialization script, you can copy it into the container
 COPY Main.sql /docker-entrypoint-initdb.d/01-Main.sql

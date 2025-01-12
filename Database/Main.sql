@@ -2,7 +2,7 @@ BEGIN;
 
 -- Create Users Table
 CREATE TABLE IF NOT EXISTS "User" (
-    "UserId" UUID PRIMARY KEY,       -- GUID field for UserId
+    "UserId" UUID PRIMARY KEY DEFAULT gen_random_uuid(),       -- GUID field for UserId
     "Username" VARCHAR(255) UNIQUE,  -- Username field
     "Password" VARCHAR(255),         -- Password field
     "CreatedAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP -- Created timestamp
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS "User" (
 
 -- Create Chats Table
 CREATE TABLE IF NOT EXISTS "Chat" (
-    "ChatId" UUID PRIMARY KEY,   
+    "ChatId" UUID PRIMARY KEY DEFAULT gen_random_uuid(),   
     "Name" VARCHAR(255) NOT NULL,       -- GUID field for ChatId
     "UserId" UUID NOT NULL,          -- UserId (foreign key from Users)
     "CreatedAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP, -- Created timestamp
@@ -21,7 +21,7 @@ CREATE INDEX "IDX_Chat_UserId" ON "Chat" ("UserId");
 
 -- Create Messages Table
 CREATE TABLE IF NOT EXISTS "Message" (
-    "MessageId" UUID PRIMARY KEY,    -- GUID field for MessageId
+    "MessageId" UUID PRIMARY KEY DEFAULT gen_random_uuid(),    -- GUID field for MessageId
     "ChatId" UUID NOT NULL,          -- ChatId (foreign key from Chats)
     "MessageText" TEXT NOT NULL,         -- Message content
     "CreatedAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
