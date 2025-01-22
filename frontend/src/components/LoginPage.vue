@@ -53,6 +53,7 @@ import Toast from "primevue/toast";
 import { FloatLabel } from "primevue";
 import { useAuthStore } from "@/stores/authStore";
 import { Form } from "@primevue/forms";
+import router from "@/router";
 
 export default {
   name: "LoginPage",
@@ -87,7 +88,7 @@ export default {
             detail: "Redirecting to the chat...",
           });
           setTimeout(() => {
-            window.location.href = "/"; // Redirect to homepage
+            router.push("/chats/");
           }, 1500);
         } else {
           toast.value.add({

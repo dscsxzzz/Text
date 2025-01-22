@@ -33,12 +33,12 @@ public class UserController : Controller
             return Unauthorized("Token is invalid.");
         }
 
-        if (userAccessingId == userId.ToString())
+        if (userAccessingId != userId.ToString())
         {
             return Unauthorized("You cannot access this.");
         }
 
-        var user = await _databaseService.ReadSingleAsync<UserReadSimpleDto>(userAccessingId);
+        var user = await _databaseService.ReadSingleAsync<UserReadSimpleDto>(userId);
         if (user == null)
         {
             return NotFound("User not found.");
@@ -61,7 +61,7 @@ public class UserController : Controller
             return Unauthorized("Token is invalid.");
         }
 
-        if (userAccessingId == userId.ToString())
+        if (userAccessingId != userId.ToString())
         {
             return Unauthorized("You cannot access this.");
         }
@@ -94,7 +94,7 @@ public class UserController : Controller
             return Unauthorized("Token is invalid.");
         }
 
-        if (userAccessingId == userId.ToString())
+        if (userAccessingId != userId.ToString())
         {
             return Unauthorized("You cannot access this.");
         }
@@ -127,7 +127,7 @@ public class UserController : Controller
             return Unauthorized("Token is invalid.");
         }
 
-        if (userAccessingId == userId.ToString())
+        if (userAccessingId != userId.ToString())
         {
             return Unauthorized("You cannot access this.");
         }
@@ -140,10 +140,11 @@ public class UserController : Controller
 
         var chatId = Guid.NewGuid();
         chatCreateDto.ChatId = chatId;
+        chatCreateDto.UserId = userId;
 
         await _databaseService.CreateAndSaveAsync(chatCreateDto);
 
-        return Created();
+        return Ok(chatId);
     }
 
     [HttpPut("{userId}/chats")]
@@ -156,7 +157,7 @@ public class UserController : Controller
             return Unauthorized("Token is invalid.");
         }
 
-        if (userAccessingId == userId.ToString())
+        if (userAccessingId != userId.ToString())
         {
             return Unauthorized("You cannot access this.");
         }
@@ -182,7 +183,7 @@ public class UserController : Controller
             return Unauthorized("Token is invalid.");
         }
 
-        if (userAccessingId == userId.ToString())
+        if (userAccessingId != userId.ToString())
         {
             return Unauthorized("You cannot access this.");
         }
@@ -216,7 +217,7 @@ public class UserController : Controller
             return Unauthorized("Token is invalid.");
         }
 
-        if (userAccessingId == userId.ToString())
+        if (userAccessingId != userId.ToString())
         {
             return Unauthorized("You cannot access this.");
         }

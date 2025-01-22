@@ -8,15 +8,17 @@ export const useAuthStore = defineStore("auth", {
   }),
   getters: {
     isAuthenticated: (state) => !!state.token,
+    User: (state) => state.user,
     chats: (state) => state.user?.chats || [],
   },
   actions: {
     async login(credentials) {
       try {
         const data = await ApiService.login(credentials);
-        this.user = await ApiService.getUserProfile(data.userId); // Assuming userId is part of the login response
         this.token = data.access_token;
+        console.log(this.isAuthenticated);
         ApiService.setAuthToken(this.token);
+        this.user = await ApiService.getUserProfile(data.userId);
         return true;
       } catch (error) {
         console.error("Login failed:", error);
@@ -26,7 +28,6 @@ export const useAuthStore = defineStore("auth", {
 
     logout() {
       this.user = null;
-      this.token = null;
       ApiService.setAuthToken(null);
     },
 
@@ -35,9 +36,9 @@ export const useAuthStore = defineStore("auth", {
         throw new Error("You must be logged in to create a chat.");
       }
       try {
-        const userId = this.user.id; // Adjust based on your user object structure
-        const newChat = await ApiService.createChat(userId, { /* Add necessary payload here */ });
-        this.user.chats = [...this.chats, newChat]; // Update local state
+        const userId = this.user.userId; // Adjust based on your user object structure
+        const newChat = await ApiService.createChat(userId, {name: "some name"});
+        this.user.chats = await ApiService.getUserChats(userId);
         return newChat;
       } catch (error) {
         console.error("Failed to create chat:", error);

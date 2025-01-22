@@ -31,21 +31,26 @@ const routes = [
       const chatGuid = to.params.chatGuid;
   
       if (!authStore.isAuthenticated) {
+        console.log(authStore.isAuthenticated);
         next({ name: "Login" });
         return;
       }
   
       if (chatGuid) {
-        // Check if the provided chatGuid exists in user's chats
-        if (!authStore.chats.some((chat) => chat === chatGuid)) {
+        if (!authStore.chats.some((chat) => chat.chatId === chatGuid)) {
           alert("You do not have access to this chat.");
           next({ name: "Home" });
           return;
         }
       } else {
-        // If no chatGuid is provided, create a new one and navigate to it
         try {
-          const newChat = await authStore.createNewChat(); // Assuming this method exists in your store to create a new chat
+          if(authStore.chats.length != 0)
+          {
+            let chatToRedirectTo = authStore.chats[1].chatId
+            next({ name: "ChatWindow", params: { chatGuid: chatToRedirectTo } });
+            return;
+          }
+          const newChat = await authStore.createNewChat();
           next({ name: "ChatWindow", params: { chatGuid: newChat } });
           return;
         } catch (error) {

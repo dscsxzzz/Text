@@ -79,7 +79,7 @@ namespace AuthService.Controllers
             }
 
             var token = _jwtHelper.GenerateJwtToken(user.Username, user.UserId.ToString());
-            return Ok(new { access_token = token });
+            return Ok(new { access_token = token, userId = user.UserId });
         }
 
 

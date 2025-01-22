@@ -102,7 +102,7 @@
             password: user.password,
           });
           console.log(registered);
-          if (registered.StatusCode == 200) {
+          if (registered.status == 200) {
             toast.value.add({
               severity: "success",
               summary: "Registration Successful",

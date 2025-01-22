@@ -41,15 +41,17 @@ builder.Services.AddCors(options =>
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        var section = builder.Configuration.GetSection("JwtSettings");
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            // The key you used to sign the token
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("YourSecretKeyHere")),  // Replace with your key
-            ValidateIssuer = false, // You can set this to true and specify a valid issuer if needed
-            ValidateAudience = false, // You can set this to true and specify a valid audience if needed
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(section["SecretKey"])),
+            ValidIssuer = section["Issuer"],
+            ValidAudience = section["Audience"],
+            ValidateIssuer = true,
+            ValidateAudience = true,
             ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero // Set clock skew to zero to prevent token expiration issues
+            ClockSkew = TimeSpan.Zero 
         };
     });
 var app = builder.Build();

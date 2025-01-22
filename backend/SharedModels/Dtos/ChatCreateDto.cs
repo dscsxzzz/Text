@@ -16,5 +16,6 @@ public class ChatCreateDto : ILinkToEntity<Chat>
 
     public string Name { get; set; }
 
+    [JsonIgnore]
     public Guid UserId { get; set; }
 }

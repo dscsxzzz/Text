@@ -20,7 +20,7 @@ class ApiService {
   static async register(user) {
     try {
       const response = await this.api.post("/api/auth/register", user);
-      return response.data;
+      return response;
     } catch (error) {
       throw error.response?.data || error.message;
     }
@@ -48,6 +48,7 @@ class ApiService {
   static async getUserProfile(userId) {
     try {
       const response = await this.api.get(`/api/users/${userId}/data`);
+      console.log(response.data);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
