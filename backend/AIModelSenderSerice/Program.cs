@@ -5,6 +5,7 @@ using GenericServices.Setup;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using SharedModels.Dtos;
 using SharedModels.Models;
@@ -36,6 +37,9 @@ builder.Services.AddCors(options =>
 
 // Add RabbitMQ Listener
 builder.Services.AddSingleton<FrontendSender>();
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.SetMinimumLevel(LogLevel.Information);
 var port = Environment.GetEnvironmentVariable("SERVICE_PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 var app = builder.Build();

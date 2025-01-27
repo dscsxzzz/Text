@@ -8,6 +8,7 @@ using RabbitMQ.Client;
 using SharedModels.RabbitMQHelpers;
 using SharedModels.Requests;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 
 
 
@@ -15,11 +16,16 @@ namespace AIModelReceiverService;
 public class FrontendReceiver : Hub
 {
     private readonly IConnection _connection;
+    private readonly ILogger<FrontendReceiver> _logger; 
     public IChannel _channel;
 
-    public FrontendReceiver(IConnection connection)
+    public FrontendReceiver(IConnection connection, ILogger<FrontendReceiver> logger)
     {
         _connection = connection;
+        _logger = logger;
+
+        _channel = _connection.CreateChannelAsync().Result;
+        _logger.LogInformation("Channel created successfully.");
     }
 
     public async Task<IChannel> CreateChannel()
@@ -28,15 +34,19 @@ public class FrontendReceiver : Hub
         return _channel;
     }
 
-    public async Task HandleFrontendRequest(ModelRequest input)
+    public async Task HandleFrontendRequest(Guid userId, string input)
     {
-        Console.WriteLine($"Received request from UserId: {input.UserId}, Input: {input.Input}");
-        var tempQueue = (await _channel.QueueDeclareAsync()).QueueName;
-
-        var message = JsonSerializer.Serialize(input);
+        _logger.LogInformation($"Received request from UserId: {userId.ToString()}, Input: {input}");
+        var tempQueue = (await _channel.QueueDeclareAsync(exclusive:false)).QueueName;
+        var req = new ModelRequest()
+        {
+            UserId = userId,
+            Input = input,
+        };
+        var message = JsonSerializer.Serialize(req);
         var messageBody = Encoding.UTF8.GetBytes(message);
 
-        var correlationId = new Guid().ToString();
+        var correlationId = Guid.NewGuid().ToString();
 
         var properties = new BasicProperties()
         {
@@ -45,6 +55,7 @@ public class FrontendReceiver : Hub
         };
 
         await _channel.QueueDeclareAsync(queue: Queue.AIModelQueue.GetDescription(), durable: false, exclusive: false, autoDelete: false);
+        await _channel.QueueDeclareAsync(queue: Queue.UserQueue.GetDescription(), durable: false, exclusive: false, autoDelete: false);
         await _channel.BasicPublishAsync(
             exchange: "",
             routingKey: Queue.AIModelQueue.GetDescription(),
@@ -52,7 +63,14 @@ public class FrontendReceiver : Hub
             basicProperties: properties,
             body: messageBody
         );
+        await _channel.BasicPublishAsync(
+            exchange: "",
+            routingKey: Queue.UserQueue.GetDescription(),
+            mandatory: true,
+            basicProperties: properties,
+            body: messageBody
+        );
 
-        Console.WriteLine($"Request sent to AI model queue: {input}, ReplyQueue: {tempQueue}");
+        _logger.LogInformation($"Request sent to AI model queue: {input}, ReplyQueue: {tempQueue}");
     }
 }

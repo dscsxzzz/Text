@@ -64,21 +64,31 @@ Shopkeeper:
 """
 
 def on_request(ch, method, props, body):
+    # Parse the input body
     body_dict = json.loads(body)
+    
+    # Convert the UUID to string during object creation
     request = Request.Request(input=body_dict['Input'], user_id=UUID(body_dict['UserId']))
+    
+    # Generate the summary
     summarized_text = summarize_text(request.input)
+    
+    # Prepare the response with the user_id converted to string
     response = {
-        "UserId": user_id,
+        "UserId": str(request.user_id),  # Convert UUID to string here
         "SummarizedText": summarized_text
     }
+    
+    # Logging for debugging
     print(props.reply_to)
     print(props.correlation_id)
     
+    # Send the response back
     ch.basic_publish(exchange='',
                      routing_key=props.reply_to,
-                     properties=pika.BasicProperties(correlation_id = \
-                                                         props.correlation_id),
+                     properties=pika.BasicProperties(correlation_id=props.correlation_id),
                      body=json.dumps(response))
+    
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 channel.basic_qos(prefetch_count=1)

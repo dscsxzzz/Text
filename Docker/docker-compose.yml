@@ -49,17 +49,17 @@ services:
       timeout: 30s
       retries: 3
 
-  # python:
-  #   build:
-  #     context: ../backend python
-  #   container_name: python_backend
-  #   ports:
-  #     - "5000:5000"
-  #   depends_on:
-  #     rabbitmq:
-  #       condition: service_healthy
-  #   networks:
-  #     - backend_network
+  python:
+    build:
+      context: ../backend python
+    container_name: python_backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - backend_network
 
   ai_sender_service:
     build:

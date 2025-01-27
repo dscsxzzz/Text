@@ -37,6 +37,7 @@ import MessageInput from "./MessageInput.vue";
 import * as signalR from "@microsoft/signalr";
 import ApiService from "@/ApiService"; // Import your ApiService
 import { useRoute } from "vue-router"; // To get the chatId from the route
+import { useAuthStore } from "@/stores/authStore";
 
 export default {
   components: {
@@ -46,51 +47,69 @@ export default {
   data() {
     return {
       messages: [], // Holds chat messages
-      hubConnection: null, // SignalR Hub connection
-      userId: "unique-user-id", // Replace with actual user identifier
+      userHubConnection: null, // SignalR Hub connection for user messages
+      botHubConnection: null,
+      authStore: null // SignalR Hub connection for bot messages
     };
   },
   methods: {
     async fetchChatMessages(chatId) {
       try {
-        const chat = await ApiService.getUserChat(chatId); // Fetch chat details from the API
-        this.messages = chat.Messages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)); // Sort messages by ID
+        const chat = await ApiService.getUserChat(this.authStore.user.userId, chatId); // Fetch chat details from the API
+        console.log(chat);
+        this.messages = (chat.Messages || []).sort(
+          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+        );// Sort messages by ID
       } catch (error) {
         console.error("Error fetching chat messages:", error);
       }
     },
-    initializeSignalRConnection(chatId) {
-      this.hubConnection = new signalR.HubConnectionBuilder()
-        .withUrl("http://localhost:5000/chatHub") // Update with your SignalR Hub URL
+    initializeSignalRConnections(chatId) {
+      // Initialize bot message connection
+      this.botHubConnection = new signalR.HubConnectionBuilder()
+        .withUrl(`http://localhost:8080/senderhub?userId=${this.authStore.user.userId}`) 
+        .configureLogging(signalR.LogLevel.Information) 
+        // // Sender hub for bot messages
         .build();
 
-      // Event listener for receiving messages
-      this.hubConnection.on("ReceiveMessage", (user, message) => {
-        const messageType = user === this.userId ? "user" : "bot";
+      this.botHubConnection.on("ReceiveMessage", (message) => {
+        const messageType = "bot";
         this.messages.push({
           id: Date.now(),
           text: message,
           type: messageType,
         });
+        this.scrollToBottom();
       });
 
-      // Start the SignalR connection
-      this.hubConnection
+      this.botHubConnection
         .start()
         .then(() => {
-          console.log("SignalR connection established.");
-          // Join chat room or handle logic for this specific chatId if required
-          this.hubConnection.invoke("JoinChat", chatId);
+          console.log("Bot SignalR connection established.");
         })
         .catch((err) =>
-          console.error("Error establishing SignalR connection:", err)
+          console.error("Error establishing bot SignalR connection:", err)
+        );
+
+      // Initialize user message connection
+      this.userHubConnection = new signalR.HubConnectionBuilder()
+        .withUrl("http://localhost:8081/receiverhub") // Receiver hub for user messages
+        .build();
+
+      this.userHubConnection
+        .start()
+        .then(() => {
+          console.log("User SignalR connection established.");
+        })
+        .catch((err) =>
+          console.error("Error establishing user SignalR connection:", err)
         );
     },
     sendMessage(text) {
-      // if (!this.hubConnection) {
-      //   console.error("SignalR connection not established.");
-      //   return;
-      // }
+      if (!this.userHubConnection) {
+        console.error("SignalR connection for user messages not established.");
+        return;
+      }
 
       // Push the user's message locally
       this.messages.push({
@@ -99,65 +118,76 @@ export default {
         type: "user",
       });
 
-      this.messages.push({
-        id: Date.now(),
-        text,
-        type: "bot",
-      });
-
       this.scrollToBottom();
+      console.log(this.authStore.user.userId, text);
 
-      // Send the message to the server
-      // this.hubConnection
-      //   .invoke("SendMessage", this.userId, text)
-      //   .catch((err) => console.error("Error sending message:", err));
+      // Send the message to the receiver hub
+      this.userHubConnection
+        .invoke("HandleFrontendRequest", this.authStore.user.userId, text )
+        .catch((err) =>
+          console.error("Error sending message to user SignalR connection:", err)
+        );
     },
     scrollToBottom() {
       this.$nextTick(() => {
         const messagesContainer = this.$refs.messages;
-        messagesContainer.scrollTo({
-          top: messagesContainer.scrollHeight,
-          behavior: "smooth", // Smooth scrolling
-        });
+        if (messagesContainer) {
+          messagesContainer.scrollTo({
+            top: messagesContainer.scrollHeight,
+            behavior: "smooth", // Smooth scrolling
+          });
+        }
       });
     },
-    cleanupSignalRConnection() {
-      if (this.hubConnection) {
-        this.hubConnection.stop().catch((err) =>
-          console.error("Error disconnecting SignalR connection:", err)
-        );
+    cleanupSignalRConnections() {
+      // Cleanup bot hub connection
+      if (this.botHubConnection) {
+        this.botHubConnection
+          .stop()
+          .catch((err) =>
+            console.error("Error disconnecting bot SignalR connection:", err)
+          );
+      }
+
+      // Cleanup user hub connection
+      if (this.userHubConnection) {
+        this.userHubConnection
+          .stop()
+          .catch((err) =>
+            console.error("Error disconnecting user SignalR connection:", err)
+          );
       }
     },
   },
   async mounted() {
+    this.authStore = useAuthStore();
+    console.log("mounted", this.authStore);
     const route = useRoute(); // Access route object
     const chatGuid = route.params.chatGuid; // Extract chatId from the route params
     console.log(chatGuid);
     if (chatGuid) {
       await this.fetchChatMessages(chatGuid); // Fetch messages for the chat
-      this.initializeSignalRConnection(chatGuid); // Start SignalR connection for this chat
+      this.initializeSignalRConnections(chatGuid); // Start SignalR connections for this chat
     }
   },
-
   watch: {
     $route: {
       immediate: true, // Ensures this runs on the initial mount
       async handler(newRoute) {
-        console.log(newRoute);
         const chatGuid = newRoute.params.chatGuid; // Extract new chatId
-        console.log(chatGuid);
         if (chatGuid) {
+          console.log("Switching to new chat:", chatGuid);
           await this.fetchChatMessages(chatGuid); // Fetch messages for the new chat
-          this.initializeSignalRConnection(chatGuid); // Start SignalR connection for the new chat
         }
       },
     },
   },
   beforeUnmount() {
-    this.cleanupSignalRConnection(); // Cleanup SignalR connection when component is destroyed
+    this.cleanupSignalRConnections(); // Cleanup SignalR connections when component is destroyed
   },
 };
 </script>
+
 
 <style scoped>
 .chat-window {

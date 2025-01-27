@@ -46,7 +46,8 @@ const routes = [
         try {
           if(authStore.chats.length != 0)
           {
-            let chatToRedirectTo = authStore.chats[1].chatId
+            console.log(authStore.chats); 
+            let chatToRedirectTo = authStore.chats[0].chatId
             next({ name: "ChatWindow", params: { chatGuid: chatToRedirectTo } });
             return;
           }
