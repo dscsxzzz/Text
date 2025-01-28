@@ -73,6 +73,7 @@ export default {
         .build();
 
       this.botHubConnection.on("ReceiveMessage", (message) => {
+        console.log(message);
         const messageType = "bot";
         this.messages.push({
           id: Date.now(),

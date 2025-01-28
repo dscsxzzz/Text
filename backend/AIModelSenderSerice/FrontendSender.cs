@@ -83,7 +83,7 @@ public class FrontendSender : Hub
         var response = JsonSerializer.Deserialize<ModelResponse>(message);
         if (response?.UserId != null)
         {
-            await _hubContext.Clients.User(response.UserId.ToString()).SendAsync("ReceiveMessage", response.SummarizedText);
+            await Clients.Group(response.UserId.ToString()).SendAsync("ReceiveMessage", response.SummarizedText);
             _logger.LogInformation($"Sent to user {response.UserId}: {response.SummarizedText}");
         }
         else
@@ -92,13 +92,20 @@ public class FrontendSender : Hub
         }
     }
 
-    public override Task OnConnectedAsync()
+    public override async Task OnConnectedAsync()
     {
         var userId = Context.GetHttpContext()?.Request.Query["userId"];
         if (!string.IsNullOrEmpty(userId))
         {
+            // Associate the userId with the connection
+            await Groups.AddToGroupAsync(Context.ConnectionId, userId);
             _logger.LogInformation($"User connected: {userId}");
         }
-        return base.OnConnectedAsync();
+        else
+        {
+            _logger.LogWarning("UserId is missing in the connection request.");
+        }
+
+        await base.OnConnectedAsync();
     }
 }
