@@ -18,6 +18,7 @@ public class UserCreateDtoValidator : AbstractValidator<UserCreateDto>
 
         RuleFor(x => x.Password)
             .NotEmpty()
-            .MaximumLength(255);
+            .MinimumLength(8).WithMessage("Password must be at least 8 characters long.")
+            .MaximumLength(255).WithMessage("Password must be less than 255 characters long.");
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using AIModelSenderSerice;
 using FluentValidation;
+using FluentValidation.AspNetCore;
 using GenericServices.Setup;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -18,7 +19,10 @@ var factory = new ConnectionFactory() { HostName = "rabbitmq" };
 var connection = await factory.CreateConnectionAsync();
 builder.Services.AddSingleton(connection);
 builder.Services.AddDbContext<DatabaseContext>();
-builder.Services.AddValidatorsFromAssemblyContaining<UserCreateDtoValidator>();
+builder.Services.AddFluentValidationAutoValidation()
+            .AddValidatorsFromAssemblyContaining(
+                typeof(UserCreateDto)
+            );
 builder.Services.GenericServicesSimpleSetup<DatabaseContext>(
    Assembly.GetAssembly(typeof(UserCreateDto)));
 

@@ -53,7 +53,7 @@ export const useAuthStore = defineStore("auth", {
         return data; // Return true if registration and login are successful
       } catch (error) {
         console.error("Registration failed:", error);
-        return false; // Return false if the registration fails
+        return data; // Return false if the registration fails
       }
     },
   },

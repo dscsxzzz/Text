@@ -106,16 +106,21 @@
             toast.value.add({
               severity: "success",
               summary: "Registration Successful",
-              detail: "You can now log in.",
+              detail: `${registered.data.message}`,
             });
             setTimeout(() => {
               window.location.href = "/login"; // Redirect to login page after successful registration
             }, 1500);
           } else {
+            const errors = registered.response.data.errors;
+            const errorMessages = Object.keys(errors)
+              .map(key => `${key}: ${errors[key].join(", ")}`)
+              .join("\n");
+
             toast.value.add({
               severity: "error",
               summary: "Registration Failed",
-              detail: "Username already exists or another error occurred.",
+              detail: errorMessages,
             });
           }
         } catch (error) {

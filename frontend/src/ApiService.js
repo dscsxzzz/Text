@@ -22,7 +22,7 @@ class ApiService {
       const response = await this.api.post("/api/auth/register", user);
       return response;
     } catch (error) {
-      throw error.response?.data || error.message;
+      return error;
     }
   }
 

@@ -233,6 +233,7 @@ public class UserController : Controller
             return NotFound("Chat not found");
 
         var messageId = Guid.NewGuid();
+        messageCreateDto.ChatId = chatId;
         messageCreateDto.MessageId = messageId;
 
         await _databaseService.CreateAndSaveAsync(messageCreateDto);

@@ -1,4 +1,5 @@
 using FluentValidation;
+using FluentValidation.AspNetCore;
 using GenericServices.Setup;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -19,7 +20,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<DatabaseContext>();
-builder.Services.AddValidatorsFromAssemblyContaining<UserCreateDtoValidator>();
+builder.Services.AddFluentValidationAutoValidation()
+            .AddValidatorsFromAssemblyContaining(
+                typeof(UserCreateDto)
+            );
 builder.Services.GenericServicesSimpleSetup<DatabaseContext>(
    Assembly.GetAssembly(typeof(UserCreateDto)), Assembly.GetAssembly(typeof(MessageCreateDto)));
 
@@ -61,7 +65,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-
+app.UseCors();
 app.UseAuthentication();
 
 app.UseAuthorization();

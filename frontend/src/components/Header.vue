@@ -1,6 +1,6 @@
 <template>
     <div class="header">
-      <span class="app-title">ChatGPT Clone</span>
+      <span class="app-title">Summary</span>
       <div class="auth-section">
         <template v-if="isLoggedIn">
           <span class="username">Welcome, {{ user.username }}</span>

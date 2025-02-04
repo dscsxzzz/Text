@@ -1,7 +1,10 @@
 <template>
   <div class="chat-window">
     <div class="messages" ref="messages">
-      <template v-if="messages.length">
+      <div v-if="loadingChat">
+        <ProgressSpinner />
+      </div>
+      <template v-if="messages.length && !loadingChat">
         <div
           v-for="message in messages"
           :key="message.id"
@@ -12,7 +15,7 @@
             class="p-mb-3 p-shadow-2"
           >
             <template #content>
-              <p>{{ message.text }}</p>
+              <p>{{ message.messageText }}</p>
             </template>
           </Card>
         </div>
@@ -49,7 +52,9 @@ export default {
       messages: [], // Holds chat messages
       userHubConnection: null, // SignalR Hub connection for user messages
       botHubConnection: null,
-      authStore: null // SignalR Hub connection for bot messages
+      authStore: null,
+      route: null,
+      loadingChat: true
     };
   },
   methods: {
@@ -57,9 +62,11 @@ export default {
       try {
         const chat = await ApiService.getUserChat(this.authStore.user.userId, chatId); // Fetch chat details from the API
         console.log(chat);
-        this.messages = (chat.Messages || []).sort(
+        this.loadingChat = false;
+        this.messages = (chat.messages || []).sort(
           (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
         );// Sort messages by ID
+        this.scrollToBottom();
       } catch (error) {
         console.error("Error fetching chat messages:", error);
       }
@@ -77,9 +84,16 @@ export default {
         const messageType = "bot";
         this.messages.push({
           id: Date.now(),
-          text: message,
+          messageText: message,
           type: messageType,
         });
+        let messageCreateDto = {
+          type: messageType,
+          messageText: message
+        };
+        
+        const chatId = this.route.params.chatGuid;
+        ApiService.postMessage(this.authStore.user.userId, chatId, messageCreateDto)
         this.scrollToBottom();
       });
 
@@ -115,9 +129,17 @@ export default {
       // Push the user's message locally
       this.messages.push({
         id: Date.now(),
-        text,
+        messageText: text,
         type: "user",
       });
+
+      let messageCreateDto = {
+        type: "user",
+        messageText: text
+      };
+
+      const chatId = this.route.params.chatGuid;
+      ApiService.postMessage(this.authStore.user.userId, chatId, messageCreateDto)
 
       this.scrollToBottom();
       console.log(this.authStore.user.userId, text);
@@ -163,8 +185,8 @@ export default {
   async mounted() {
     this.authStore = useAuthStore();
     console.log("mounted", this.authStore);
-    const route = useRoute(); // Access route object
-    const chatGuid = route.params.chatGuid; // Extract chatId from the route params
+    this.route = useRoute(); // Access route object
+    const chatGuid = this.route.params.chatGuid; // Extract chatId from the route params
     console.log(chatGuid);
     if (chatGuid) {
       await this.fetchChatMessages(chatGuid); // Fetch messages for the chat
@@ -198,7 +220,6 @@ export default {
   background-color: var(--chat-bg, #1f2937); /* Darker, modern background */
   color: white;
   height: 100%;
-  border-radius: 12px; /* Rounded corners for the chat window */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Soft shadow for better visual appeal */
   overflow: hidden; /* Prevent content overflow */
 }
