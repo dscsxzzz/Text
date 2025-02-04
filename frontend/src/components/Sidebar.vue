@@ -9,8 +9,9 @@
           @click="startNewChat"
         />
       </div>
+      <Divider />
       <ul class="chat-list">
-        <li v-for="chat in chats" :key="chat.chatId" class="chat-item">
+        <li v-for="chat in chats" :key="chat.chatId" :class="['chat-item']" :style="`${chat.chatId === this.route.params.chatGuid ? 'background-color: var(--hover-bg, #343541);' : ''}`">
           <div class="chat-content">
             <p-input-text
               v-if="editingChatId === chat.chatId"
@@ -27,7 +28,6 @@
               icon="pi pi-pencil"
               class="p-button-rounded p-button-text p-button-sm"
               @click="editChat(chat.chatId)"
-              style="color: var(--hover-text, #66ccff);"
             />
           </div>
         </li>
@@ -40,6 +40,7 @@
 import { Panel, Button, InputText } from "primevue";
 import ApiService from "@/ApiService"; // Import ApiService
 import { useAuthStore } from "@/stores/authStore";
+import { useRoute } from "vue-router";
 
 export default {
   components: {
@@ -51,7 +52,8 @@ export default {
     return {
       chats: [],
       editingChatId: null,
-      authStore: null
+      authStore: null,
+      route: null,
     };
   },
   methods: {
@@ -90,7 +92,8 @@ export default {
   },
   mounted() {
     this.authStore = useAuthStore();
-    this.fetchChats(); // Fetch chats on component mount
+    this.fetchChats();
+    this.route = useRoute();  // Fetch chats on component mount
   }
 };
 </script>
@@ -136,7 +139,7 @@ export default {
 }
 
 .chat-title:hover {
-  color: var(--hover-text, #66ccff);
+  color: var(--p-primary-color);
 }
 
 .chat-input {

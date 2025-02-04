@@ -67,7 +67,7 @@ export default {
 }
 
 .send-button {
-  background-color: var(--send-bg, #66ccff);
+  background-color: var(--p-primary-color);
   color: var(--send-color, #ffffff);
   border: none;
   border-radius: 50%;

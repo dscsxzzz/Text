@@ -291,9 +291,7 @@ export default {
 }
 
 .message-card.user {
-  background-color: var(--user-bg, #2563eb);
   color: var(--user-text, #ffffff);
-  border: 1px solid #1d4ed8; /* Subtle border for user messages */
 }
 
 .input-container {
