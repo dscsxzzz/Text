@@ -12,4 +12,4 @@ QUICK GUIDE:
 Now you can use this application.
 Please register to use it
 
-IMPORTANT if you have rabbitMq running it may cause troubles.
+IMPORTANT if you have rabbitMq running before running "docker-compose up -d" it may cause troubles.
