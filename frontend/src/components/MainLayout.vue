@@ -3,7 +3,7 @@
       <Header />
       <div class="chat-container">
         <Sidebar />
-        <ChatWindow />
+        <ChatWindow v-bind:IsTryOut="false"/>
       </div>
     </div>
   </template>

@@ -8,6 +8,7 @@ import App from './App.vue'
 import PrimeVue from 'primevue/config';
 import { definePreset } from '@primevue/themes';
 import Aura from '@primevue/themes/aura';
+import ConfirmationService from 'primevue/confirmationservice';
 
 const app = createApp(App)
 
@@ -28,5 +29,5 @@ app.use(PrimeVue, {
     }
 });
 app.use(createPinia())
-
+app.use(ConfirmationService);
 app.mount('#app')

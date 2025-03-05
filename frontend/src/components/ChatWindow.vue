@@ -1,4 +1,5 @@
 <template>
+  <ConfirmDialog></ConfirmDialog>
   <div class="chat-window">
     <div class="messages" ref="messages">
       <div v-if="loadingChat">
@@ -37,15 +38,24 @@
 <script>
 import { Card } from "primevue";
 import MessageInput from "./MessageInput.vue";
+import ConfirmDialog from "primevue/confirmdialog";
 import * as signalR from "@microsoft/signalr";
 import ApiService from "@/ApiService"; // Import your ApiService
 import { useRoute } from "vue-router"; // To get the chatId from the route
 import { useAuthStore } from "@/stores/authStore";
+import { useConfirm } from "primevue/useconfirm";
 
 export default {
   components: {
     MessageInput,
+    ConfirmDialog,
     Card,
+  },
+  props:{
+    IsTryOut: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -54,27 +64,34 @@ export default {
       botHubConnection: null,
       authStore: null,
       route: null,
-      loadingChat: true
+      confirm: null,
+      loadingChat: true,
+      tryOutMessageCount: 0,
+      userId: null
     };
   },
   methods: {
     async fetchChatMessages(chatId) {
-      try {
-        const chat = await ApiService.getUserChat(this.authStore.user.userId, chatId); // Fetch chat details from the API
-        console.log(chat);
-        this.loadingChat = false;
-        this.messages = (chat.messages || []).sort(
-          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-        );// Sort messages by ID
-        this.scrollToBottom();
-      } catch (error) {
-        console.error("Error fetching chat messages:", error);
+      console.log(!this.IsTryOut && chatId);
+      if(!this.IsTryOut && chatId)
+      {
+        try {
+          const chat = await ApiService.getUserChat(this.userId, chatId); // Fetch chat details from the API
+          console.log(chat);
+          this.messages = (chat.messages || []).sort(
+            (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+          );// Sort messages by ID
+          this.scrollToBottom();
+        } catch (error) {
+          console.error("Error fetching chat messages:", error);
+        }
       }
+      this.loadingChat = false;
     },
-    initializeSignalRConnections(chatId) {
+    initializeSignalRConnections() {
       // Initialize bot message connection
       this.botHubConnection = new signalR.HubConnectionBuilder()
-        .withUrl(`http://localhost:8080/senderhub?userId=${this.authStore.user.userId}`) 
+        .withUrl(`http://localhost:8080/senderhub?userId=${this.userId}`) 
         .configureLogging(signalR.LogLevel.Information) 
         // // Sender hub for bot messages
         .build();
@@ -91,9 +108,11 @@ export default {
           type: messageType,
           messageText: message
         };
-        
-        const chatId = this.route.params.chatGuid;
-        ApiService.postMessage(this.authStore.user.userId, chatId, messageCreateDto)
+        if(!this.IsTryOut)
+        {
+          const chatId = this.route.params.chatGuid;
+          ApiService.postMessage(this.userId, chatId, messageCreateDto);
+        }
         this.scrollToBottom();
       });
 
@@ -132,21 +151,50 @@ export default {
         messageText: text,
         type: "user",
       });
+      if(!this.IsTryOut)
+      {
+        let messageCreateDto = {
+          type: "user",
+          messageText: text
+        };
+  
+        const chatId = this.route.params.chatGuid;
+        ApiService.postMessage(this.authStore.user.userId, chatId, messageCreateDto);
+      }
+      else{
+        this.tryOutMessageCount += 1;
 
-      let messageCreateDto = {
-        type: "user",
-        messageText: text
-      };
-
-      const chatId = this.route.params.chatGuid;
-      ApiService.postMessage(this.authStore.user.userId, chatId, messageCreateDto)
+        if(this.tryOutMessageCount == 4)
+        {
+          this.confirm.require({
+          message: 'Looks like you enjoy our service. Do you want to register an account to unlock full potential?',
+          header: 'Unlock Full Potential',
+          icon: 'pi pi-star',
+          rejectProps: {
+              label: 'Keep Using',
+              severity: 'secondary',
+              outlined: true
+          },
+          acceptProps: {
+              label: 'Register',
+              severity: 'success'
+          },
+          accept: () => {
+              toast.add({ severity: 'success', summary: 'Registered', detail: 'You have registered successfully!', life: 3000 });
+              window.location.href = "/register"; 
+          },
+          reject: () => {
+              toast.add({ severity: 'info', summary: 'Continue as Guest', detail: 'You chose to keep using without registration', life: 3000 });
+          }
+    });
+        }
+      }
 
       this.scrollToBottom();
-      console.log(this.authStore.user.userId, text);
+      
 
-      // Send the message to the receiver hub
       this.userHubConnection
-        .invoke("HandleFrontendRequest", this.authStore.user.userId, text )
+        .invoke("HandleFrontendRequest", this.userId, text)
         .catch((err) =>
           console.error("Error sending message to user SignalR connection:", err)
         );
@@ -184,14 +232,13 @@ export default {
   },
   async mounted() {
     this.authStore = useAuthStore();
+    this.confirm = useConfirm();
+    this.userId = this.IsTryOut ? crypto.randomUUID() : this.authStore.user.userId;
     console.log("mounted", this.authStore);
     this.route = useRoute(); // Access route object
     const chatGuid = this.route.params.chatGuid; // Extract chatId from the route params
-    console.log(chatGuid);
-    if (chatGuid) {
-      await this.fetchChatMessages(chatGuid); // Fetch messages for the chat
-      this.initializeSignalRConnections(chatGuid); // Start SignalR connections for this chat
-    }
+    await this.fetchChatMessages(chatGuid); // Fetch messages for the chat
+    this.initializeSignalRConnections(); // Start SignalR connections for this chat
   },
   watch: {
     $route: {
@@ -207,7 +254,7 @@ export default {
   },
   beforeUnmount() {
     this.cleanupSignalRConnections(); // Cleanup SignalR connections when component is destroyed
-  },
+  }
 };
 </script>
 

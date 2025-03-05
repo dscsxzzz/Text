@@ -35,7 +35,9 @@
       },
       user() {
         const authStore = useAuthStore();
-        return authStore.user || {};
+        return authStore.user || {
+          username: "user"
+        };
       },
     },
     methods: {

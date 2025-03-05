@@ -5,6 +5,7 @@ import LoginPage from "@/components/LoginPage.vue";
 import ChatWindow from "@/components/ChatWindow.vue";
 import MainLayout from "@/components/MainLayout.vue";
 import RegisterPage from "@/components/RegisterPage.vue";
+import TryOutWindow from "@/components/TryOutWindow.vue";
 
 const routes = [
   {
@@ -64,6 +65,11 @@ const routes = [
       next();
     },
   },
+  {
+    path: "/try-out",
+    name: "TryOut",
+    component: TryOutWindow,
+  }
 ];
 
 const router = createRouter({

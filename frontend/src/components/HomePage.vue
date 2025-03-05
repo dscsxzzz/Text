@@ -45,7 +45,7 @@
               Start a chat, or interact with our AI to generate
               insightful summaries of your conversations.
             </p>
-            <p-button label="Try Demo" class="demo-button" />
+            <p-button label="Try Demo" class="demo-button" @click="goToTryOut"/>
           </div>
         </div>
       </div>
@@ -92,15 +92,20 @@ export default {
           "Easily integrate with your favorite tools and workflows.",
       },
     ];
+    const goToTryOut = () => {
+      router.push("/try-out");
+    };
 
     // Logic for navigating to /chat on button click
     const goToChat = () => {
       router.push("/chats"); // Redirects to /chat page
     };
 
+
     return {
       features,
       goToChat,
+      goToTryOut
     };
   },
 };

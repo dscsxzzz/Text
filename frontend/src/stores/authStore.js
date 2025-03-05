@@ -37,8 +37,8 @@ export const useAuthStore = defineStore("auth", {
       }
       try {
         const userId = this.user.userId; // Adjust based on your user object structure
-        const newChat = await ApiService.createChat(userId, {name: "some name"});
         this.user.chats = await ApiService.getUserChats(userId);
+        const newChat = await ApiService.createChat(userId, {name: `chat ${this.user.chats.length}`});
         return newChat;
       } catch (error) {
         console.error("Failed to create chat:", error);
