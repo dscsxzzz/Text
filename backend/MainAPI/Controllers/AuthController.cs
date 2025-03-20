@@ -6,8 +6,9 @@ using SharedModels.Helpers;
 using System.Security.Claims;
 using GenericServices;
 using SharedModels.Dtos;
-using SharedModels.Models;
 using Microsoft.EntityFrameworkCore;
+using MainAPI.Services;
+using SharedModels.ValidationModels;
 
 namespace AuthService.Controllers
 {
@@ -17,11 +18,16 @@ namespace AuthService.Controllers
     {
         private readonly ICrudServicesAsync _databaseService;
         private readonly JwtHelper _jwtHelper;
+        private readonly EmailService _emailService;
+        private readonly CacheService _cacheService;
 
-        public AuthController(ICrudServicesAsync databaseService, JwtHelper jwtHelper)
+
+        public AuthController(ICrudServicesAsync databaseService, JwtHelper jwtHelper, EmailService emailService, CacheService cacheService)
         {
             _databaseService = databaseService;
             _jwtHelper = jwtHelper;
+            _emailService = emailService;
+            _cacheService = cacheService;
         }
 
         [HttpPost("register")]
@@ -42,26 +48,59 @@ namespace AuthService.Controllers
             }
 
             var hashedPassword = PasswordHelper.HashPassword(model.Password);
-
-            var us = new User()
-            {
-                Username = model.Username,
-                Password = hashedPassword,
-            };
-
             model.Password = hashedPassword;
             model.UserId = Guid.NewGuid();
 
-            try
+            // Generate a 6-digit confirmation code
+            var confirmationCode = new Random().Next(100000, 999999);
+
+            // Create a unique token to store the user data and the confirmation code
+            var token = Guid.NewGuid().ToString();
+            var data = new ConfirmEmail()
             {
-                var user = await _databaseService.CreateAndSaveAsync(model);
-            }
-            catch (Exception)
+                UserData = model,
+                ConfirmationCode = confirmationCode,
+            };
+            // Store user data temporarily in the dictionary with expiration time
+            _cacheService.SetWithExpiration(token, data, TimeSpan.FromMinutes(5));
+
+            // Send confirmation email with the confirmation code
+            var confirmationLink = $"https://yourapp.com/confirm-email?token={token}&code={confirmationCode}";
+            var emailBody = $"Please use the following code to confirm your account: {confirmationCode}. If you did not request this, please ignore this email.";
+            await _emailService.SendEmailAsync(model.Email, "Email Confirmation", emailBody);
+
+            return Ok(new { Token = token });
+        }
+
+        [HttpGet("confirm-email")]
+        public async Task<ActionResult> ConfirmEmail([FromQuery] string token, [FromQuery] int confirmationCode)
+        {
+            var userConfirmation = _cacheService.GetFromCache<ConfirmEmail>(token);
+            if (userConfirmation is not null)
             {
-                throw;
+                if (userConfirmation.ConfirmationCode == confirmationCode)
+                {
+                    var userModel = userConfirmation.UserData;
+                    try
+                    {
+                        var user = await _databaseService.CreateAndSaveAsync(userModel);
+                    }
+                    catch (Exception)
+                    {
+                        return StatusCode(500, "An error occurred while saving the user to the database.");
+                    }
+
+                    _cacheService.RemoveFromCache(token);
+
+                    return Ok(new { message = "User confirmed and account created successfully." });
+                }
+                else
+                {
+                    return BadRequest("Invalid confirmation code or confirmation expired.");
+                }
             }
 
-            return Ok(new { message = "User registered successfully."});
+            return BadRequest("Invalid or expired token.");
         }
 
         [HttpPost("login")]
@@ -111,6 +150,69 @@ namespace AuthService.Controllers
             return Ok(new { message = "Password updated successfully." });
         }
 
-        
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest model)
+        {
+            var user = await _databaseService.ReadSingleAsync<UserUpdateDto>(
+                x => x.Username == model.Username);
+
+            if (user == default)
+            {
+                return NotFound("User not found.");
+            }
+
+            var token = Guid.NewGuid().ToString();
+            var confirmationCode = new Random().Next(100000, 999999).ToString();
+            var data = new ResetPassword()
+            {
+                UserData = user,
+                ConfirmationCode = confirmationCode,
+            };
+
+            _cacheService.SetWithExpiration(token, data, TimeSpan.FromMinutes(5));
+
+            // Send email with the confirmation code
+            var emailBody = $"Your password reset code is: <b>{confirmationCode}</b>";
+            await _emailService.SendEmailAsync(user.Email, "Password Reset Code", emailBody);
+
+            return Ok(new { Token = token });
+        }
+
+        [HttpPost("verify-reset-code")]
+        public async Task<IActionResult> VerifyResetCode([FromQuery] string token, [FromBody] VerifyResetCodeRequest model)
+        {
+            var userConfirmation = _cacheService.GetFromCache<ResetPassword>(token);
+            if (userConfirmation is not null)
+            {
+                if (userConfirmation.ConfirmationCode == model.Code)
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest("Invalid confirmation code or confirmation expired.");
+                }
+            }
+
+            return BadRequest("Invalid or expired token.");
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromQuery] string token, [FromBody] ResetPasswordRequest model)
+        {
+            var userConfirmation = _cacheService.GetFromCache<ResetPassword>(token);
+            if (userConfirmation is not null)
+            {
+                var user = userConfirmation.UserData;
+                var hashedPassword = PasswordHelper.HashPassword(model.Password);
+                user.Password = hashedPassword;
+
+                await _databaseService.UpdateAndSaveAsync(user);
+
+                return Ok();
+            }
+            return BadRequest("Invalid confirmation code or confirmation expired.");
+        }
+
     }
 }

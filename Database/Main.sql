@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS "User" (
     "UserId" UUID PRIMARY KEY DEFAULT gen_random_uuid(),       -- GUID field for UserId
     "Username" VARCHAR(255) UNIQUE,  -- Username field
     "Password" VARCHAR(255),         -- Password field
+    "Email" VARCHAR(255),
     "CreatedAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP -- Created timestamp
 );
 

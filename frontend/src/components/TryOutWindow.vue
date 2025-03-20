@@ -2,7 +2,6 @@
     <div class="main-layout">
         <Header />
         <ChatWindow v-bind:IsTryOut="true"/>
-        <ConfirmDialog></ConfirmDialog>
     </div>
 </template>
 

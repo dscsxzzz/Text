@@ -79,6 +79,7 @@ public partial class DatabaseContext : DbContext
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.Password).HasMaxLength(255);
+            entity.Property(e => e.Email).HasMaxLength(255);
             entity.Property(e => e.Username).HasMaxLength(255);
         });
 

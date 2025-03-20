@@ -2,10 +2,10 @@ import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
 import HomePage from "@/components/HomePage.vue";
 import LoginPage from "@/components/LoginPage.vue";
-import ChatWindow from "@/components/ChatWindow.vue";
 import MainLayout from "@/components/MainLayout.vue";
 import RegisterPage from "@/components/RegisterPage.vue";
 import TryOutWindow from "@/components/TryOutWindow.vue";
+import ForgotPasswordPage from "@/components/ForgotPasswordPage.vue";
 
 const routes = [
   {
@@ -69,6 +69,11 @@ const routes = [
     path: "/try-out",
     name: "TryOut",
     component: TryOutWindow,
+  },
+  {
+    path: "/forgot-password",
+    name: "ForgotPassword",
+    component: ForgotPasswordPage,
   }
 ];
 

@@ -35,6 +35,56 @@ class ApiService {
     }
   }
 
+  static async forgotPassword(credentials) {
+    try {
+      const response = await this.api.post("/api/auth/forgot-password", credentials);
+      return response.data.token;
+    } catch (error) {
+      throw await error.response?.data || error.message;
+    }
+  }
+
+  static async confirmEmail(token, code){
+    try {
+      const response = await this.api.get("/api/auth/confirm-email", { 
+        params: { 
+          token: token, 
+          confirmationCode: code
+        }
+      });
+      return response;
+    } catch (error) {
+      throw await error.response?.data || error.message;
+    }
+  }
+
+  static async verifyResetCode(token, code){
+    try {
+      const response = await this.api.post("/api/auth/verify-reset-code", code, { 
+        params: { 
+          token: token,
+        }
+      });
+      return response;
+    } catch (error) {
+      throw await error.response?.data || error.message;
+    }
+  }
+
+  static async resetPassowrd(token, password){
+    try {
+      const response = await this.api.post("/api/auth/reset-password", password, { 
+        params: { 
+          token: token, 
+        }
+      });
+      return response;
+    } catch (error) {
+      throw await error.response?.data || error.message;
+    }
+  }
+
+
   static async changePassword(changePasswordRequest) {
     try {
       const response = await this.api.post("/api/auth/change-password", changePasswordRequest);

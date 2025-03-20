@@ -5,6 +5,8 @@ export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null,
     token: null,
+    forgotPasswordToken: null,
+    confirmEmailToken: null,
   }),
   getters: {
     isAuthenticated: (state) => !!state.token,
@@ -37,8 +39,8 @@ export const useAuthStore = defineStore("auth", {
       }
       try {
         const userId = this.user.userId; // Adjust based on your user object structure
-        this.user.chats = await ApiService.getUserChats(userId);
         const newChat = await ApiService.createChat(userId, {name: `chat ${this.user.chats.length}`});
+        this.user.chats = await ApiService.getUserChats(userId);
         return newChat;
       } catch (error) {
         console.error("Failed to create chat:", error);
@@ -49,10 +51,52 @@ export const useAuthStore = defineStore("auth", {
     // Add register method for user registration
     async register(credentials) {
       try {
-        const data = await ApiService.register(credentials); // API call to register a new user
+        const data = await ApiService.register(credentials); 
+        this.confirmEmailToken = data.data.token;
         return data; // Return true if registration and login are successful
       } catch (error) {
         console.error("Registration failed:", error);
+        return data; // Return false if the registration fails
+      }
+    },
+
+    async confirmEmail(code) {
+      try {
+        const data = await ApiService.confirmEmail(this.confirmEmailToken, code); 
+        return data;
+      } catch (error) {
+        console.error("Registration failed:", error);
+        return data; // Return false if the registration fails
+      }
+    },
+
+    async forgotPassword(credentials) {
+      try {
+        const token = await ApiService.forgotPassword(credentials); // API call to register a new user
+        this.forgotPasswordToken = token;
+        return true; // Return true if registration and login are successful
+      } catch (error) {
+        console.error("Reseting Password failed:", error);
+        return false; // Return false if the registration fails
+      }
+    },
+
+    async verifyResetCode(credentials) {
+      try {
+        const data = await ApiService.verifyResetCode(this.forgotPasswordToken, credentials); // API call to register a new user
+        return data; // Return true if registration and login are successful
+      } catch (error) {
+        console.error("Reseting Password failed:", error);
+        return data; // Return false if the registration fails
+      }
+    },
+
+    async resetPassword(credentials) {
+      try {
+        const data = await ApiService.resetPassowrd(this.forgotPasswordToken, credentials); // API call to register a new user
+        return data; // Return true if registration and login are successful
+      } catch (error) {
+        console.error("Reseting Password failed:", error);
         return data; // Return false if the registration fails
       }
     },

@@ -1,4 +1,5 @@
 <template>
+   <Toast ref="toast" position="top-center" />
   <ConfirmDialog></ConfirmDialog>
   <div class="chat-window">
     <div class="messages" ref="messages">
@@ -37,7 +38,9 @@
 
 <script>
 import { Card } from "primevue";
+import { useToast } from 'primevue/usetoast';
 import MessageInput from "./MessageInput.vue";
+import Toast from "primevue/toast";
 import ConfirmDialog from "primevue/confirmdialog";
 import * as signalR from "@microsoft/signalr";
 import ApiService from "@/ApiService"; // Import your ApiService
@@ -50,6 +53,7 @@ export default {
     MessageInput,
     ConfirmDialog,
     Card,
+    Toast
   },
   props:{
     IsTryOut: {
@@ -65,6 +69,7 @@ export default {
       authStore: null,
       route: null,
       confirm: null,
+      toast: null,
       loadingChat: true,
       tryOutMessageCount: 0,
       userId: null
@@ -166,27 +171,43 @@ export default {
 
         if(this.tryOutMessageCount == 4)
         {
-          this.confirm.require({
-          message: 'Looks like you enjoy our service. Do you want to register an account to unlock full potential?',
-          header: 'Unlock Full Potential',
-          icon: 'pi pi-star',
-          rejectProps: {
-              label: 'Keep Using',
-              severity: 'secondary',
-              outlined: true
-          },
-          acceptProps: {
-              label: 'Register',
-              severity: 'success'
-          },
-          accept: () => {
-              toast.add({ severity: 'success', summary: 'Registered', detail: 'You have registered successfully!', life: 3000 });
-              window.location.href = "/register"; 
-          },
-          reject: () => {
-              toast.add({ severity: 'info', summary: 'Continue as Guest', detail: 'You chose to keep using without registration', life: 3000 });
-          }
-    });
+          setTimeout(() => {
+                this.confirm.require({
+                    message: 'Looks like you enjoy our service. Do you want to register an account to unlock full potential?',
+                    header: 'Unlock Full Potential',
+                    icon: 'pi pi-star',
+                    rejectProps: {
+                        label: 'Keep Using',
+                        severity: 'secondary',
+                        outlined: true
+                    },
+                    acceptProps: {
+                        label: 'Register',
+                        severity: 'success'
+                    },
+                    accept: (event) => {
+                        event?.stopPropagation(); // Prevents further key event issues
+                        this.toast.add({
+                            severity: 'success',
+                            summary: 'Registered',
+                            detail: 'You have registered successfully!',
+                            life: 3000
+                        });
+                        setTimeout(() => {
+                            window.location.href = "/register"; // Redirect only if user accepts
+                        }, 1000);
+                    },
+                    reject: (event) => {
+                        event?.stopPropagation();
+                        this.toast.add({
+                            severity: 'info',
+                            summary: 'Continue as Guest',
+                            detail: 'You chose to keep using without registration',
+                            life: 3000
+                        });
+                    }
+                });
+            }, 100); 
         }
       }
 
@@ -233,6 +254,7 @@ export default {
   async mounted() {
     this.authStore = useAuthStore();
     this.confirm = useConfirm();
+    this.toast = useToast();
     this.userId = this.IsTryOut ? crypto.randomUUID() : this.authStore.user.userId;
     console.log("mounted", this.authStore);
     this.route = useRoute(); // Access route object

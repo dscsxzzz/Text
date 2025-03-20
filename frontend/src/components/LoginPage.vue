@@ -19,15 +19,21 @@
           </FloatLabel>
           <FloatLabel>
             <Password
-            inputId="password_input"
-            v-model="user.password"
-            :feedback="feedback"
-            class="input-width"
-            toggle-mask
-            fluid
+              inputId="password_input"
+              v-model="user.password"
+              :feedback="feedback"
+              class="input-width"
+              toggle-mask
+              fluid
             />
             <label for="password_input">Password</label>
           </FloatLabel>
+          
+          <!-- Forgot Password Button -->
+          <div class="forgot-password-container">
+            <a @click="redirectToForgotPassword" class="forgot-password-link">Forgot Password?</a>
+          </div>
+          
           <div class="form-actions">
             <Button
               label="Register"
@@ -41,6 +47,7 @@
         <Toast ref="toast" position="top-center" />
       </template>
     </Card>
+    
   </div>
 </template>
 
@@ -57,7 +64,7 @@ import router from "@/router";
 
 export default {
   name: "LoginPage",
-  components: { InputText, Password, Button, Toast, Form, FloatLabel },
+  components: { InputText, Password, Button, Toast, Form, FloatLabel},
   setup() {
     const user = reactive({
       username: "",
@@ -107,10 +114,14 @@ export default {
     };
 
     const redirectToRegister = () => {
-      window.location.href = "/register"; // Replace with your registration page URL
+      window.location.href = "/register";
     };
 
-    return { user, feedback, toast, handleLogin, redirectToRegister };
+    const redirectToForgotPassword = () => {
+      window.location.href = "/forgot-password";
+    }
+
+    return { user, feedback, toast, handleLogin, redirectToRegister, redirectToForgotPassword};
   },
 };
 </script>
@@ -126,6 +137,17 @@ export default {
   font-family: "Arial", sans-serif;
 }
 
+.login-header-title {
+  font-size: 1.8rem;
+  color: #343541;
+  margin-bottom: 0.5rem;
+}
+  
+.login-header-description {
+  color: #6c757d;
+  font-size: 1rem;
+}
+
 .login-container {
   width: 100%;
   max-width: 400px;
@@ -135,15 +157,21 @@ export default {
   overflow: hidden;
 }
 
-.login-header-title {
-  font-size: 1.8rem;
-  color: #343541;
-  margin-bottom: 0.5rem;
+.forgot-password-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -10px;
 }
 
-.login-header-description {
-  color: #6c757d;
-  font-size: 1rem;
+.forgot-password-link {
+  font-size: 0.9rem;
+  color: #007bff;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.forgot-password-link:hover {
+  color: #0056b3;
 }
 
 .login-form {

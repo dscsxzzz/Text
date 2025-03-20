@@ -1,6 +1,7 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using GenericServices.Setup;
+using MainAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using SharedModels.Dtos;
@@ -28,9 +29,10 @@ builder.Services.GenericServicesSimpleSetup<DatabaseContext>(
    Assembly.GetAssembly(typeof(UserCreateDto)), Assembly.GetAssembly(typeof(MessageCreateDto)));
 
 builder.Services.AddAutoMapper(typeof(UserReadSimpleDtoMapping));
-
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<CacheService>();
 builder.Services.AddSingleton<JwtHelper>();
-
+builder.Services.AddSingleton<EmailService>();
 var port = Environment.GetEnvironmentVariable("SERVICE_PORT") ?? "8082";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 builder.Services.AddCors(options =>
