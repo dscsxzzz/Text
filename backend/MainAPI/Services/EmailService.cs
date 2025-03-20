@@ -8,13 +8,14 @@ public class EmailService
     private readonly string _smtpServer = "smtp.gmail.com";
     private readonly int _smtpPort = 587;
     private readonly string _smtpUsername = "textsummaryai@gmail.com";
-    private readonly string _smtpPassword = "mxcpqkrqgbtwoedd";
+    private readonly string _smtpPassword;
     private readonly string _fromEmail = "textsummaryai@gmail.com";
     private readonly ILogger<EmailService> _logger;
 
     public EmailService(ILogger<EmailService> logger)
     {
         _logger = logger;
+        _smtpPassword = "DO NOT EXPOSE IT";
     }
 
     public async Task SendEmailAsync(string toEmail, string subject, string body)
