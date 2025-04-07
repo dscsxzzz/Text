@@ -15,7 +15,7 @@ public class EmailService
     public EmailService(ILogger<EmailService> logger)
     {
         _logger = logger;
-        _smtpPassword = "DO NOT EXPOSE IT";
+        _smtpPassword = "mxcpqkrqgbtwoedd";
     }
 
     public async Task SendEmailAsync(string toEmail, string subject, string body)
