@@ -76,8 +76,7 @@ export const useAuthStore = defineStore("auth", {
         this.forgotPasswordToken = token;
         return true; // Return true if registration and login are successful
       } catch (error) {
-        console.error("Reseting Password failed:", error);
-        return false; // Return false if the registration fails
+        throw error.message;
       }
     },
 
