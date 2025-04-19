@@ -7,17 +7,22 @@ export const useAuthStore = defineStore("auth", {
     token: null,
     forgotPasswordToken: null,
     confirmEmailToken: null,
+    isSidebarVisible: false,
+    lastSaved: null,
   }),
   getters: {
     isAuthenticated: (state) => !!state.token,
     User: (state) => state.user,
     chats: (state) => state.user?.chats || [],
+    sidebarVisible: (state) => state.isSidebarVisible
   },
+  
   actions: {
     async login(credentials) {
       try {
         const data = await ApiService.login(credentials);
         this.token = data.access_token;
+        this.lastSaved = Date.now();
         console.log(this.isAuthenticated);
         ApiService.setAuthToken(this.token);
         this.user = await ApiService.getUserProfile(data.userId);
@@ -26,6 +31,31 @@ export const useAuthStore = defineStore("auth", {
         console.error("Login failed:", error);
         return false;
       }
+    },
+
+    checkExpiration() {
+      const now = Date.now()
+      const fifteenMinutes = 15 * 60 * 1000
+
+      if (this.lastSaved && now - this.lastSaved > fifteenMinutes) {
+        this.clearAll();
+        return;
+      }
+      ApiService.setAuthToken(this.token);
+    },
+
+    clearAll()
+    {
+      this.user = null,
+      this.token = null,
+      this.forgotPasswordToken = null,
+      this.confirmEmailToken = null,
+      this.isSidebarVisible = false,
+      this.lastSaved = null
+    },
+    
+    toggleSidebar() {
+      this.isSidebarVisible = !this.isSidebarVisible;
     },
 
     logout() {
@@ -51,8 +81,11 @@ export const useAuthStore = defineStore("auth", {
     // Add register method for user registration
     async register(credentials) {
       try {
-        const data = await ApiService.register(credentials); 
-        this.confirmEmailToken = data.data.token;
+        const data = await ApiService.register(credentials);
+        if(data.status === 200)
+        {
+          this.confirmEmailToken = data.data.token;
+        }
         return data; // Return true if registration and login are successful
       } catch (error) {
         console.error("Registration failed:", error);
@@ -100,4 +133,8 @@ export const useAuthStore = defineStore("auth", {
       }
     },
   },
+
+  persist: {
+    storage: localStorage,
+  }
 });

@@ -132,26 +132,25 @@ export default {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  background: var(--surface-ground);
   padding: 1rem;
   font-family: "Arial", sans-serif;
 }
 
 .login-header-title {
   font-size: 1.8rem;
-  color: #343541;
+  color: var(--text-color);
   margin-bottom: 0.5rem;
 }
   
 .login-header-description {
-  color: #6c757d;
+  color: var(--text-color);
   font-size: 1rem;
 }
 
 .login-container {
   width: 100%;
   max-width: 400px;
-  background: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   overflow: hidden;

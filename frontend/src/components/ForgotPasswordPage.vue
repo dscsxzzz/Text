@@ -9,7 +9,7 @@
       </template>
       <template #content>
         <Toast ref="toast" position="top-right" />
-        <Stepper value="1">
+        <Stepper value="1" linear>
           <StepList>
             <Step value="1">Enter Username</Step>
             <Step value="2">Enter Confirmation Code</Step>
@@ -48,7 +48,7 @@
                     icon="pi pi-arrow-right" 
                     iconPos="right" 
                     @click="activateCallback('2')" 
-                    :disabled="!forgotUsername"
+                    :disabled="!sentCode"
                   />
                 </div>
               </div>
@@ -92,7 +92,7 @@
                     icon="pi pi-arrow-right" 
                     iconPos="right" 
                     @click="activateCallback('3')" 
-                    :disabled="!confirmationCode"
+                    :disabled="!isCodeVerified"
                   />
                 </div>
               </div>
@@ -183,6 +183,9 @@ export default {
     const activeStep = ref("1");
     const toast = useToast();
     const authStore = useAuthStore();
+    const sentCode = ref(false);
+    const isCodeVerified = ref(false);
+
 
     const handleForgotPassword = async () => {
       if (!forgotUsername.value) {
@@ -204,7 +207,7 @@ export default {
           life: 3000
         });
         // Automatically move to next step
-        activeStep.value = "2";
+        sentCode.value = true;
       } catch (error) {
         toast.add({
           severity: "error",
@@ -237,7 +240,7 @@ export default {
           life: 3000
         });
         // Automatically move to next step
-        activeStep.value = "3";
+        isCodeVerified.value = true;
       } catch (error) {
         toast.add({
           severity: "error",
@@ -291,7 +294,9 @@ export default {
       toast, 
       handleForgotPassword, 
       handleConfirmationCode, 
-      handleNewPassword 
+      handleNewPassword,
+      sentCode,
+      isCodeVerified
     };
   },
 };
@@ -310,7 +315,8 @@ export default {
 .forgot-password-card {
   width: 100%;
   max-width: 650px;
-  border-radius: var(--border-radius);
+  border-radius: 10px;
+  padding: 10px;
   box-shadow: var(--card-shadow);
 }
 

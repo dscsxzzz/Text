@@ -10,6 +10,7 @@ import { definePreset } from '@primevue/themes';
 import Aura from '@primevue/themes/aura';
 import ConfirmationService from 'primevue/confirmationservice';
 import ToastService from 'primevue/toastservice';
+import piniaPersistedstate from 'pinia-plugin-persistedstate'
 
 const app = createApp(App)
 
@@ -29,7 +30,9 @@ app.use(PrimeVue, {
         preset: MyPreset
     }
 });
-app.use(createPinia())
+const pinia = createPinia();
+pinia.use(piniaPersistedstate);
+app.use(pinia);
 app.use(ToastService);
 app.use(ConfirmationService);
 app.mount('#app')

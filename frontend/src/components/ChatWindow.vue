@@ -286,10 +286,9 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--chat-bg, #1f2937); /* Darker, modern background */
+  background-color: var(--sidebar-bg, #202123); 
   color: white;
   height: 100%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Soft shadow for better visual appeal */
   overflow: hidden; /* Prevent content overflow */
 }
 
@@ -297,7 +296,8 @@ export default {
   flex: 1;
   padding: 1rem;
   overflow-y: auto; /* Make the message area scrollable */
-  background-color: var(--chat-bg, #1f2937); /* Consistent background */
+  background: var(--surface-ground);
+  /* Consistent background */
   display: flex;
   flex-direction: column;
   gap: 1rem; /* Space between messages */
@@ -355,7 +355,7 @@ export default {
 
 .message-card.bot {
   background-color: var(--bot-bg, #374151);
-  color: var(--bot-text, #ffffff);
+  color: var(--p-primary-color);
   border: 1px solid #4b5563; /* Subtle border for bot messages */
 }
 
@@ -365,12 +365,10 @@ export default {
 
 .input-container {
   padding: 1rem;
-  background-color: var(--input-bg, #111827);
+  background-color: var(--sidebar-bg, #202123); 
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  border-top: 1px solid #374151; /* Separator line for input area */
-  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1); /* Soft shadow at the bottom */
 }
 </style>

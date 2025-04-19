@@ -5,6 +5,7 @@
       rows="1"
       autoResize
       placeholder="Type a message..."
+      size="large"
       class="message-input"
       @keydown.enter="sendMessage"
     />
@@ -53,7 +54,7 @@ export default {
 .message-input {
   flex: 1;
   margin-right: 0.5rem;
-  background-color: var(--textarea-bg, #404452);
+  background-color: var(--primary-color, #343541);
   color: var(--text-color, #ffffff);
   border: none;
   border-radius: 8px;
@@ -81,5 +82,11 @@ export default {
 .send-button:disabled {
   background-color: var(--send-disabled-bg, #888888);
   color: var(--send-disabled-color, #cccccc);
+}
+
+@media (max-width: 1024px) {
+  .message-input-container {
+    width: 80%;
+  }
 }
 </style>

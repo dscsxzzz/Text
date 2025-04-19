@@ -106,10 +106,17 @@ export default {
             detail: "A confirmation code has been sent to your email.",
           });
         } else {
-          const errors = registered.response.data.errors;
-          const errorMessages = Object.keys(errors)
-            .map((key) => `${key}: ${errors[key].join(", ")}`)
-            .join("\n");
+          const data = registered.response.data;
+          let errorMessages = "";
+          if(data.errors)
+          {
+            errorMessages = Object.keys(data.errors)
+              .map((key) => `${key}: ${data.errors[key].join(", ")}`)
+              .join("\n");
+          }
+          else{
+            errorMessages = data;
+          }
 
           toast.value.add({
             severity: "error",
@@ -170,7 +177,7 @@ export default {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  background: var(--surface-ground);
   padding: 1rem;
   font-family: "Arial", sans-serif;
 }
@@ -178,7 +185,6 @@ export default {
 .register-container {
   width: 100%;
   max-width: 400px;
-  background: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   overflow: hidden;
@@ -186,12 +192,12 @@ export default {
 
 .register-header-title {
   font-size: 1.8rem;
-  color: #343541;
+  color: var(--text-color);
   margin-bottom: 0.5rem;
 }
 
 .register-header-description {
-  color: #6c757d;
+  color: var(--text-color);
   font-size: 1rem;
 }
 
