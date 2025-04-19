@@ -286,7 +286,7 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--sidebar-bg, #202123); 
+  background: var(--surface-ground);
   color: white;
   height: 100%;
   overflow: hidden; /* Prevent content overflow */
@@ -365,7 +365,7 @@ export default {
 
 .input-container {
   padding: 1rem;
-  background-color: var(--sidebar-bg, #202123); 
+  background: var(--surface-ground);
   display: flex;
   flex-direction: row;
   justify-content: center;

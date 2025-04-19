@@ -67,7 +67,7 @@ export default {
 
 <style scoped>
 .header {
-  background-color: var(--primary-color, #343541);
+  background-color:  #212121;
   color: var(--p-primary-color);
   padding: 1rem;
   display: flex;

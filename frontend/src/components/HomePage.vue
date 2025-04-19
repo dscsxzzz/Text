@@ -9,12 +9,7 @@
         </p>
         <p-button label="Get Started" icon="pi pi-arrow-right" @click="goToChat" />
       </div>
-      <img
-        src="https://via.placeholder.com/600x400"
-        alt="AI Chat Illustration"
-        class="border-round shadow-3"
-        style="max-width: 100%; height: auto; max-width: 500px;"
-      />
+      
     </div>
 
     <!-- Features Section -->
@@ -36,12 +31,6 @@
     <div class="surface-section border-round p-5 shadow-1 mb-6">
       <h2 class="text-2xl text-center mb-4">See It in Action</h2>
       <div class="p-d-flex p-flex-column p-md-flex-row p-ai-center p-jc-between gap-5">
-        <img
-          src="https://via.placeholder.com/500x300"
-          alt="Demo Illustration"
-          class="border-round shadow-2"
-          style="max-width: 100%; height: auto; max-width: 400px;"
-        />
         <div class="p-flex-1">
           <p class="mb-3">
             Start a chat or interact with our AI to generate insightful summaries of your conversations.
