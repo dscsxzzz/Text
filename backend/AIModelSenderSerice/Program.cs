@@ -39,7 +39,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add RabbitMQ Listener
 builder.Services.AddSingleton<FrontendSender>();
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -49,12 +48,10 @@ builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 var app = builder.Build();
 app.UseCors(); // Enable CORS for the app
 
-// Start RabbitMQ Listener
 var listener = app.Services.GetRequiredService<FrontendSender>();
 await listener.CreateChannel();
 await listener.StartListeningToEventQueue();
 
-// Map SignalR hub
 app.MapHub<FrontendSender>("/senderhub");
 
 app.Run();
