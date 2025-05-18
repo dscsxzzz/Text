@@ -30,7 +30,18 @@ const routes = [
     beforeEnter: async (to, from, next) => {
       const authStore = useAuthStore();
       const chatGuid = to.params.chatGuid;
-  
+      const lastSaved = authStore.lastSaved;
+
+    if (lastSaved) {
+      const savedDate = new Date(lastSaved);
+      const expiryDate = new Date(savedDate.getTime() + 30 * 60000); // +30 minutes
+
+      if (new Date() > expiryDate) {
+        authStore.clearAll(); // or however you reset the auth store
+        next({ name: "Login" });
+      }
+    }
+
       if (!authStore.isAuthenticated) {
         console.log(authStore.isAuthenticated);
         next({ name: "Login" });
